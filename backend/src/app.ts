@@ -35,5 +35,12 @@ app.use('/api/v1/user', getOrderRoute);
 app.use('/api/v1/user', userRoute);
 app.use('/api/v1/delete-order', deleteOrderRoute);
 
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('🔥 Uncaught exception:', err);
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal server error',
+    // only in debug: stack: err.stack
+  });
+});
 
 export default app;
