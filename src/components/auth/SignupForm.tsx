@@ -1,15 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
+import api from '@/utils/api';
 
 interface SignupFormProps {
-  onSignup: (name: string, email: string, password: string) => void;
+  onSignup: (name: string, email: string, password: string, confirmPassword: string) => void;
   onSwitchToLogin: () => void;
 }
 
 const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogin }) => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      console.log('User is already logged in');
+      navigate('/auth');
+    }  }, []);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -17,15 +27,28 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogin }) =>
     confirmPassword: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match');
       return;
     }
-    
-    onSignup(formData.name, formData.email, formData.password);
+    // try{
+    //   const response = await api.post('/api/v1/user/signup', {
+    //     name: formData.name,
+    //     email: formData.email,
+    //     password: formData.password,
+    //     confirmPassword: formData.confirmPassword,
+    //   });
+    //   localStorage.setItem('token', response.data.token);
+    //   localStorage.setItem('userId', response.data.user.id);
+    //   console.log('Signup successful:', response.data);
+    //   navigate('/dashboard');
+    // }catch(err) {
+    //   console.error("Error during signup:", err);
+    // }
+    onSignup(formData.name, formData.email, formData.password, formData.confirmPassword);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

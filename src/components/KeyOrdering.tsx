@@ -1,32 +1,61 @@
-import React, { useState } from 'react';
+import api from '@/utils/api';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface Order {
   id: string;
-  orderNo: string;
-  srNo: string;
+  orderId: string;
+  srno: string;
   createDate: string;
   reasonToOrder: string;
   description: string;
 }
 
 interface FormData {
-  orderNo: string;
-  srNo: string;
+  orderId: string;
+  srno: string;
   createDate: string;
   reasonToOrder: string;
   description: string;
 }
 
 const KeyOrdering: React.FC = () => {
+
+  const [orders, setOrders] = useState<Order[]>([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Fetch initial orders from the API
+    const userId= localStorage.getItem('userId');
+    if (!userId) {
+      navigate('/auth');
+      return;
+    }
+    const fetchOrders = async () => {
+      
+      try {
+        const response = await api.post(`/api/v1/user/get-order/`,{ userId } );
+        console.log('Fetched orders:', response);
+        if (response.data.orders) {
+          setOrders(response.data.orders);
+        }
+        
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      }
+    };
+
+    fetchOrders();
+  }, []);
   const [formData, setFormData] = useState<FormData>({
-    orderNo: '',
-    srNo: '',
+    orderId: '',
+    srno: '',
     createDate: '',
     reasonToOrder: '',
     description: '',
   });
 
-  const [orders, setOrders] = useState<Order[]>([]);
+  
 
   const reasonOptions = [
     { value: '', label: 'Select a reason...' },
@@ -39,34 +68,40 @@ const KeyOrdering: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleAddOrder = (e: React.FormEvent) => {
+  const handleAddOrder = async(e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate required fields
-    if (!formData.orderNo || !formData.srNo || !formData.createDate || !formData.reasonToOrder) {
+    if (!formData.orderId || !formData.srno || !formData.createDate || !formData.reasonToOrder) {
       alert('Please fill in all required fields');
       return;
     }
 
-    const newOrder: Order = {
-      id: Date.now().toString(),
-      ...formData,
-    };
-
-    setOrders(prev => [...prev, newOrder]);
+    try{
+      const response = await api.post('/api/v1/order/add-order', {
+        ...formData,
+        userId: localStorage.getItem('userId'),
+      });
+      console.log('Order added successfully:', response.data);
+      setOrders(response.data.order);
+      alert('Order added successfully');
+    }catch (error) {
+      console.error("Error adding order:", error);
+      return;
+    }
     handleClear();
   };
 
   const handleClear = () => {
     setFormData({
-      orderNo: '',
-      srNo: '',
+      orderId: '',
+      srno: '',
       createDate: '',
       reasonToOrder: '',
       description: '',
@@ -94,9 +129,9 @@ const KeyOrdering: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  id="orderNo"
-                  name="orderNo"
-                  value={formData.orderNo}
+                  id="orderId"
+                  name="orderId"
+                  value={formData.orderId}
                   onChange={handleInputChange}
                   className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
                   placeholder="Enter order number"
@@ -111,9 +146,9 @@ const KeyOrdering: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  id="srNo"
-                  name="srNo"
-                  value={formData.srNo}
+                  id="srno"
+                  name="srno"
+                  value={formData.srno}
                   onChange={handleInputChange}
                   className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
                   placeholder="Enter serial number"
@@ -235,10 +270,10 @@ const KeyOrdering: React.FC = () => {
                       } hover:bg-table-hover transition-colors`}
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                        {order.orderNo}
+                        {order.orderId}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                        {order.srNo}
+                        {order.srno}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                         {new Date(order.createDate).toLocaleDateString()}

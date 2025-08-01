@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginFormProps {
   onLogin: (email: string, password: string) => void;
@@ -10,6 +11,15 @@ interface LoginFormProps {
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToSignup }) => {
+  // const navigate = useNavigate();
+
+  // useEffect(() => {
+  //   const token = localStorage.getItem('token');
+  //   if (token) {
+  //     console.log('User is already logged in');
+  //     navigate('/dashboard');
+  //   }
+  // }, []);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
